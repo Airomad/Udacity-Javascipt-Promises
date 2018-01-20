@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>XMLHttpRequest Wrapper</title>
+</head>
+<body>
+	<h1>XMLHttpRequest Wrapper</h1>
+	<div class="completion">Loading...</div>
+	<script>
+		var completion = document.querySelector('.completion');
+
+		function loadJSONData(url) {
+			return new Promise(function(resolve, reject) {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', url, true);
+
+				xhr.onload = function() {
+					if (this.status == 200) {
+						resolve(this.response);
+					} else {
+						var error = new Error(this.statusText);
+						error.code = this.status;
+						reject(error);
+					}
+				};
+
+				xhr.onerror = function() {
+					reject(new Error("Some error"));
+				};
+
+				xhr.send();
+			});
+		}
+
+		function finish(data) {
+			completion.innerHTML = "Loaded data: " + data;
+		};
+		function error(error) {
+			completion.innerHTML = "Error was catched";
+		}
+
+		loadJSONData('https://learn.javascript.ru/article/promise/user.json')
+			.then(finish)
+			.catch(error);
+	</script>
+</body>
+</html>
