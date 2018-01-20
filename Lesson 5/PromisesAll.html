@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Parallel Promises</title>
+	<style>
+		.user-picture {
+			width: 100px;
+			height: 100px;
+			border-radius: 50%;
+		}
+	</style>
+</head>
+<body>
+	<h1>Parallel Promises</h1>
+	<div class="completion">Loading...</div>
+	<script>
+		var completion = document.querySelector('.completion');
+		var users = ['Airomad', 'graphcool', 'photonstorm', 'apex'];
+
+		function loadJSONData(url) {
+			return new Promise(function(resolve, reject) {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', url, true);
+
+				xhr.onload = function() {
+					if (this.status == 200) {
+						resolve(this.response);
+					} else {
+						var error = new Error(this.statusText);
+						error.code = this.status;
+						reject(error);
+					}
+				};
+
+				xhr.onerror = function() {
+					reject(new Error("Some error"));
+				};
+
+				xhr.send();
+			});
+		}
+
+		function loadGithubUserData(username) {
+			return loadJSONData(`https://api.github.com/users/${username}`);
+		}
+
+		function showLoadingStatus(jsonData) {
+			var data = JSON.parse(jsonData);
+			completion.innerHTML = "Found picture " + data.avatar_url;
+			return data;
+		}
+
+		function showUserPicture(data) {
+			let img = new Image();
+			img.src = data.avatar_url;
+			img.className = "user-picture";
+			document.body.appendChild(img);
+
+			setTimeout(() => img.remove(), 3000);
+		}
+
+		function finish(data) {
+			completion.innerHTML = "Loaded";
+		};
+		function error(error) {
+			completion.innerHTML = "Error was catched";
+		}
+
+		Promise.all(users.map(function(user) {
+			loadGithubUserData(user)
+			.then(showLoadingStatus)
+			.then(showUserPicture)
+		}))
+			.then(finish)
+			.catch(error);
+	</script>
+</body>
+</html>
